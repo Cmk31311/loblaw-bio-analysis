@@ -1,6 +1,5 @@
 .PHONY: setup pipeline dashboard test
 
-# Codespaces has `python`. Fall back when that command is missing.
 PYTHON := $(shell if command -v python >/dev/null 2>&1; then echo python; elif command -v python3.11 >/dev/null 2>&1; then echo python3.11; else echo python3; fi)
 
 setup:

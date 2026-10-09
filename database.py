@@ -1,4 +1,3 @@
-"""Repository-relative SQLite connections and reusable parameterized queries."""
 from __future__ import annotations
 
 import sqlite3
@@ -17,7 +16,6 @@ def connect(db_path: Path = DATABASE) -> sqlite3.Connection:
             f"Database missing: {db_path}. Run `make pipeline` (or `python load_data.py`) first."
         )
     con = sqlite3.connect(db_path)
-    # Not stored in the file; each connection has to turn this on.
     con.execute("PRAGMA foreign_keys = ON")
     return con
 
@@ -49,7 +47,6 @@ _FREQUENCY_COLUMNS = {
 def filtered_frequencies(
     filters: dict | None = None, search: str = "", db_path: Path = DATABASE
 ) -> pd.DataFrame:
-    """Five required frequency columns, with optional exact filters and an id search."""
     clauses: list[str] = []
     params: list = []
     for key, value in (filters or {}).items():
@@ -74,7 +71,6 @@ def filtered_frequencies(
 
 
 def baseline_samples(db_path: Path = DATABASE) -> pd.DataFrame:
-    """One row for each baseline, melanoma, miraclib, PBMC sample."""
     return read_frame(
         """
         SELECT su.project_id AS project, su.subject_id AS subject,
@@ -91,7 +87,6 @@ def baseline_samples(db_path: Path = DATABASE) -> pd.DataFrame:
 
 
 def baseline_breakdown(dimension: str, db_path: Path = DATABASE) -> pd.DataFrame:
-    """SQL-backed counts with explicit distinction between samples and subjects."""
     dimensions = {
         "project": ("su.project_id", "COUNT(*)", "samples"),
         "response": ("su.response", "COUNT(DISTINCT su.subject_id)", "subjects"),
@@ -113,7 +108,6 @@ def baseline_breakdown(dimension: str, db_path: Path = DATABASE) -> pd.DataFrame
 
 
 def baseline_project_counts(db_path: Path = DATABASE) -> pd.DataFrame:
-    """Qualifying baseline samples in every project, including explicit zeros."""
     return read_frame(
         """
         SELECT p.project_id AS project, COUNT(s.sample_id) AS samples
@@ -130,7 +124,6 @@ def baseline_project_counts(db_path: Path = DATABASE) -> pd.DataFrame:
 
 
 def male_responder_baseline_b_mean(db_path: Path = DATABASE) -> tuple[float, int]:
-    """DO NOT restrict sample_type or treatment: the assignment asks for all."""
     with closing(connect(db_path)) as con:
         result = con.execute(
             """

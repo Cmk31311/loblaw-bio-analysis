@@ -1,4 +1,3 @@
-"""SQLite-backed clinical analytics dashboard. Presentation only; queries live in database.py and stats.py."""
 from __future__ import annotations
 
 import html
@@ -422,8 +421,6 @@ def overview_totals(project: str, treatment: str, condition: str) -> dict:
         ).iloc[0]
         return {key: int(row[key]) for key in ("samples", "patients", "projects", "cell_counts")}
     suffix, params = _subject_on(project, treatment, condition)
-    where = f"WHERE 1=1{suffix}" if suffix else ""
-    # suffix is " AND col = ?" so attach it to a real predicate.
     where = ("WHERE " + suffix.removeprefix(" AND ")) if suffix else ""
     counts = sql_cached(
         f"""
@@ -472,7 +469,6 @@ def visit_counts(project: str, treatment: str, condition: str, unit: str) -> pd.
 
 
 def breakdown(dimension: str, project: str, treatment: str, condition: str, unit: str) -> pd.DataFrame:
-    """One chart's categories stay visible; the other two filters apply."""
     filters = {"project": project, "treatment": treatment, "condition": condition}
     filters[dimension] = "All"
     suffix, params = _subject_on(filters["project"], filters["treatment"], filters["condition"])
@@ -558,7 +554,7 @@ def reset_overview() -> None:
 def show_overview() -> None:
     page_header(
         "Trial Overview",
-        "Structure of the loaded trial. Filters here are exploratory and do not change the response or subset cohorts.",
+        "Structure of the loaded trial.",
     )
     projects = distinct_values("SELECT project_id AS value FROM projects ORDER BY 1")
     treatments = distinct_values("SELECT DISTINCT treatment AS value FROM subjects ORDER BY 1")
@@ -591,7 +587,7 @@ def show_overview() -> None:
         st.markdown(
             "<p class='filter-note on'><span class='dot'></span> "
             + html.escape(" · ".join(active))
-            + ". Response analysis and subset analysis are unchanged.</p>",
+            + ".</p>",
             unsafe_allow_html=True,
         )
     totals = overview_totals(project, treatment, condition)
@@ -618,7 +614,7 @@ def show_overview() -> None:
                 composition_figure(composition, "Pooled share"),
                 alt="Pooled share of the five populations in the current filter",
             )
-            st.caption("Pooled from counts in the current filter, not a mean of percentages.")
+            st.caption("Pooled from counts in the current filter.")
 
     project_frame = breakdown("project", project, treatment, condition, unit)
     treatment_frame = breakdown("treatment", project, treatment, condition, unit)
@@ -819,7 +815,7 @@ def show_frequencies() -> None:
     action, _rest = st.columns([1.3, 4])
     with action:
         download_csv("Download CSV", data, "sample_frequencies_filtered.csv")
-    st.caption("The file keeps the five columns unrounded, for every matching row, not only this page.")
+    st.caption("Unrounded values for every matching row.")
 
 
 def results_table(stats_table: pd.DataFrame) -> None:
@@ -863,7 +859,7 @@ def results_table(stats_table: pd.DataFrame) -> None:
 def show_response() -> None:
     page_header(
         "Response Analysis",
-        "Melanoma, miraclib, PBMC, response yes or no. One value per patient. The timepoint changes the comparison, not who is included.",
+        "Melanoma, miraclib, PBMC, response yes or no. One value per patient.",
     )
     current_label = st.segmented_control(
         "Timepoint",
@@ -946,7 +942,7 @@ def show_response() -> None:
 def show_subset() -> None:
     page_header(
         "Subset Analysis",
-        "Two fixed cohorts. The baseline block is not the cohort used for the B-cell mean.",
+        "Baseline cohort and B-cell mean.",
     )
     base = baseline_samples()
     projects = baseline_project_counts()
@@ -999,7 +995,6 @@ def show_subset() -> None:
         "<span><b>Treatment</b> all</span><span><b>Sample type</b> all</span></p>",
         unsafe_allow_html=True,
     )
-    st.caption("Absolute B-cell count. This is not limited to miraclib or PBMC, and it is not a percentage.")
     average, count = male_responder_baseline_b_mean()
     metric_strip([
         ("Mean B-cell count", f"{average:.2f}"),
@@ -1064,10 +1059,8 @@ with st.expander("Cohort definitions"):
     st.markdown(
         "Frequencies use the five populations in each sample as the denominator.\n\n"
         "Response analysis is melanoma, miraclib, and PBMC, with response yes or no. "
-        "One observation per patient. Changing the timepoint does not change that cohort.\n\n"
-        "The overview filters are exploratory. They do not change the response comparison "
-        "or the subset queries.\n\n"
-        "Subset analysis is the response cohort at day 0.\n\n"
-        "The B-cell mean is separate: melanoma, male, response yes, day 0, "
+        "One observation per patient.\n\n"
+        "Subset analysis is that cohort at day 0.\n\n"
+        "The B-cell mean is melanoma, male, response yes, day 0, "
         "every treatment and sample type."
     )

@@ -1,7 +1,3 @@
-"""Rebuild a validated SQLite database from cell-count.csv.
-
-Run directly from any working directory: python load_data.py
-"""
 from __future__ import annotations
 
 import csv
@@ -64,8 +60,6 @@ def load(csv_path: Path = CSV_PATH, database_path: Path = DATABASE) -> dict:
     if not samples:
         raise ValueError("CSV is empty")
 
-    # Build a complete database in a temporary file and only replace the
-    # previous version after successful validation and commit.
     database_path.parent.mkdir(parents=True, exist_ok=True)
     fd, temp_name = tempfile.mkstemp(prefix=".clinical_trial_", suffix=".db", dir=database_path.parent)
     os.close(fd)

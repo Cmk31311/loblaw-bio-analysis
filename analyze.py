@@ -1,4 +1,3 @@
-"""Run Parts 2-4 from SQLite, export reproducible outputs, print key answers."""
 from __future__ import annotations
 
 import json

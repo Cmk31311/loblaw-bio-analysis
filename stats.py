@@ -1,4 +1,3 @@
-"""Patient-independent responder comparisons for melanoma/miraclib/PBMC."""
 from __future__ import annotations
 
 import math
@@ -37,7 +36,6 @@ def cohort_frequencies(db_path: Path = DATABASE) -> pd.DataFrame:
 
 
 def independent_values(data: pd.DataFrame, day: int | None = None) -> pd.DataFrame:
-    """One row per patient/population for each comparison, avoiding pseudoreplication."""
     if day is not None:
         data = data.loc[data["day"] == day]
     if data.empty:
@@ -46,11 +44,6 @@ def independent_values(data: pd.DataFrame, day: int | None = None) -> pd.DataFra
 
 
 def standardized_mean_difference(a: np.ndarray, b: np.ndarray) -> tuple[float, float]:
-    """Cohen's d and Hedges' g for responder mean minus non-responder mean.
-
-    The standardizer is the pooled standard deviation. Hedges' g multiplies d by
-    the small-sample correction 1 - 3 / (4*(n1+n2) - 9).
-    """
     responder = np.asarray(a, dtype=float)
     non_responder = np.asarray(b, dtype=float)
     n1, n2 = len(responder), len(non_responder)
@@ -69,7 +62,6 @@ def standardized_mean_difference(a: np.ndarray, b: np.ndarray) -> tuple[float, f
 
 
 def effect_size_band(g: float) -> str:
-    """Conventional absolute-value bands. Descriptive only, not clinical cutoffs."""
     magnitude = abs(g)
     if magnitude < 0.2:
         return "negligible"
@@ -81,7 +73,6 @@ def effect_size_band(g: float) -> str:
 
 
 def _welch_ci(a: np.ndarray, b: np.ndarray) -> tuple[float, float]:
-    """95% confidence interval for (responder mean - non-responder mean)."""
     na, nb = len(a), len(b)
     va = float(np.var(a, ddof=1))
     vb = float(np.var(b, ddof=1))
@@ -125,7 +116,6 @@ def compare(data: pd.DataFrame, day: int | None = None) -> pd.DataFrame:
 
 
 def written_conclusion(results: pd.DataFrame, timepoint_label: str) -> str:
-    """Describe the comparison that was actually run. Significance comes only from results."""
     if results.empty:
         return "No patients met the cohort filters, so no comparison was run."
     responders = int(results["responder_n"].iloc[0])

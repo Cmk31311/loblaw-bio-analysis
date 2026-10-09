@@ -61,7 +61,7 @@ Each patient is one observation. The combined view averages that patient's visit
 
 The day-0 subset is melanoma, miraclib, PBMC, day 0. Project counts are samples, including a project with zero rows. Response and sex counts are distinct patients.
 
-The B-cell mean is a different question: melanoma, male, response yes, day 0, every treatment and sample type. It averages the absolute B-cell count and is printed to two decimals.
+The B-cell mean is melanoma, male, response yes, day 0, every treatment and sample type. It averages the absolute B-cell count and is printed to two decimals.
 
 ## Assumptions
 
@@ -97,7 +97,7 @@ In the combined visit comparison, CD4 T cells are higher in responders by 0.64 p
 
 ## Deploy
 
-The app is not deployed. To host it, push the repo and create a Streamlit Community Cloud app with main file `app.py`. If `clinical_trial.db` is absent, the app builds it from the CSV. Put the real URL here after that works.
+https://loblaw-bio-analysis3.streamlit.app/
 
 ## Limits
 

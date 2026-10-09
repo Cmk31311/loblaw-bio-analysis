@@ -1,4 +1,3 @@
-"""Automated analytical acceptance tests using the included source CSV."""
 from __future__ import annotations
 
 import csv
@@ -22,7 +21,6 @@ from stats import (
 
 
 def _benjamini_hochberg(p_values):
-    """BH adjusted p-values, implemented here so the test does not call statsmodels."""
     p = np.asarray(p_values, dtype=float)
     n = len(p)
     order = np.argsort(p)
