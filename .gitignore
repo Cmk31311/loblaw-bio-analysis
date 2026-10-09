@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.streamlit/secrets.toml
+outputs/*
+!outputs/.gitkeep
+.DS_Store
+.pytest_cache/
