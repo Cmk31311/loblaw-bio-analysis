@@ -37,13 +37,6 @@ POP_COLORS = {
     "nk_cell": "#8A8A84",
     "monocyte": "#C8C1B4",
 }
-NAV = [
-    ("", "Overview"),
-    ("frequencies", "Cell Frequencies"),
-    ("response", "Response Analysis"),
-    ("subset", "Subset Analysis"),
-]
-
 st.set_page_config(page_title="Loblaw Bio Analysis", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown(
@@ -53,23 +46,21 @@ st.markdown(
     .block-container {padding-top: 4.75rem; padding-bottom: 3rem; max-width: 1140px;}
     [data-testid="stDataFrame"] {font-variant-numeric: tabular-nums lining-nums;}
     a:focus-visible, button:focus-visible {outline: 2px solid #101010; outline-offset: 2px;}
-    .navpill {
-        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    .st-key-topnav {
         background: #FFFFFF; border: 1px solid #E6E6E3; border-radius: 999px;
-        padding: 6px 14px 6px 16px; margin: 0 0 1.35rem;
+        padding: 4px 14px 4px 16px; margin: 0 0 1.35rem;
     }
-    .brandlink {
-        display: inline-flex; align-items: center; gap: 8px; color: #101010;
-        text-decoration: none; font-weight: 600; letter-spacing: -0.03em; font-size: 0.92rem;
-        white-space: nowrap;
+    .st-key-topnav [data-testid="stElementContainer"] {margin: 0;}
+    .st-key-topnav [data-testid="stButton"] button {
+        border: 0; background: transparent; color: #101010; min-height: 0;
+        padding: 6px 2px; font-weight: 600; letter-spacing: -0.03em; font-size: 0.92rem;
     }
-    .dot {width: 7px; height: 7px; border-radius: 50%; background: #FF3638; display: inline-block; flex: 0 0 7px;}
-    .navlinks {display: flex; align-items: center; gap: 2px; flex-wrap: wrap; justify-content: center;}
-    .navlinks a {
-        color: #101010; text-decoration: none; font-size: 0.84rem; font-weight: 500;
-        padding: 6px 12px; border-radius: 999px;
+    .st-key-topnav [data-testid="stPageLink"] {width: auto;}
+    .st-key-topnav [data-testid="stPageLink-NavLink"] {
+        width: auto; border-radius: 999px; padding: 6px 12px;
+        font-size: 0.84rem; font-weight: 500; color: #101010;
     }
-    .navlinks a.on {background: #101010; color: #FFFFFF;}
+    .dot {width: 7px; height: 7px; border-radius: 50%; background: #FF3638; display: inline-block;}
     .navstatus {color: #6F6F6A; font-size: 0.75rem; white-space: nowrap;}
     .page-title {
         font-size: 1.85rem; font-weight: 600; letter-spacing: -0.045em; line-height: 1.05;
@@ -110,7 +101,7 @@ st.markdown(
     table.detail td {border-top: 1px solid #EFEFEC; padding: 7px 0; color: #101010;}
     table.detail td.num, table.detail th.num {text-align: right;}
     @media (max-width: 800px) {
-        .navpill {border-radius: 18px; align-items: flex-start; flex-direction: column;}
+        .st-key-topnav {border-radius: 18px;}
         .metrics-4, .metrics-3 {grid-template-columns: 1fr 1fr;}
         .metrics div:nth-child(odd) {border-left: 0; padding-left: 0;}
     }
@@ -1026,35 +1017,34 @@ def show_subset() -> None:
         download_csv("Sex counts", sexes, "baseline_counts_sex.csv")
 
 
-def shell(current: str) -> None:
+def shell(pages) -> None:
     built = datetime.fromtimestamp(DATABASE.stat().st_mtime).strftime("%Y-%m-%d")
-    links = []
-    for path, label in NAV:
-        href = "/" if path == "" else f"/{path}"
-        selected = " on" if current == path else ""
-        current_attr = " aria-current='page'" if current == path else ""
-        links.append(f"<a class='{selected.strip()}' href='{href}'{current_attr}>{html.escape(label)}</a>")
-    st.markdown(
-        "<div class='navpill'>"
-        "<a class='brandlink' href='/'><span class='dot'></span>Loblaw Bio Analysis</a>"
-        f"<nav class='navlinks'>{''.join(links)}</nav>"
-        f"<span class='navstatus'>Database {html.escape(built)}</span>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    with st.container(
+        key="topnav", horizontal=True, vertical_alignment="center",
+        horizontal_alignment="distribute", gap="small",
+    ):
+        with st.container(horizontal=True, vertical_alignment="center", gap="small", width="content"):
+            st.markdown("<span class='dot'></span>", unsafe_allow_html=True)
+            if st.button("Loblaw Bio Analysis", key="nav_brand", type="tertiary"):
+                st.switch_page(pages[0])
+        with st.container(horizontal=True, vertical_alignment="center", gap="small", width="content"):
+            for page in pages:
+                st.page_link(page, label=page.title, icon="")
+        st.markdown(
+            f"<span class='navstatus'>Database {html.escape(built)}</span>",
+            unsafe_allow_html=True,
+        )
 
 
-pages = st.navigation(
-    [
-        st.Page(show_overview, title="Overview", url_path="overview", default=True),
-        st.Page(show_frequencies, title="Cell Frequencies", url_path="frequencies"),
-        st.Page(show_response, title="Response Analysis", url_path="response"),
-        st.Page(show_subset, title="Subset Analysis", url_path="subset"),
-    ],
-    position="hidden",
-)
-shell(pages.url_path)
-pages.run()
+pages = [
+    st.Page(show_overview, title="Overview", url_path="overview", default=True),
+    st.Page(show_frequencies, title="Cell Frequencies", url_path="frequencies"),
+    st.Page(show_response, title="Response Analysis", url_path="response"),
+    st.Page(show_subset, title="Subset Analysis", url_path="subset"),
+]
+navigation = st.navigation(pages, position="hidden")
+shell(pages)
+navigation.run()
 with st.expander("Cohort definitions"):
     st.markdown(
         "Frequencies use the five populations in each sample as the denominator.\n\n"
